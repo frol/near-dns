@@ -1,0 +1,32 @@
+[package]
+name = "near-dns-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# DNS
+hickory-server = { version = "0.25", features = ["resolver"] }
+hickory-proto = "0.25"
+hickory-resolver = "0.25"
+
+# NEAR
+near-api = "0.8"
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Caching
+moka = { version = "0.12", features = ["future"] }
+
+# Utils
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+async-trait = "0.1"
+url = "2"
