@@ -80,20 +80,17 @@ dig @127.0.0.1 -p 5353 google.com A  # Forwarded upstream
 ### Running with Docker
 
 ```bash
-# Build the image
-docker build -t near-dns-server .
-
 # Run with defaults (mainnet RPC, port 53)
 docker run -d --name near-dns \
   -p 53:53/udp \
   -p 53:53/tcp \
-  near-dns-server
+  frolvlad/near-dns
 
 # Run with testnet RPC on a custom port
 docker run -d --name near-dns \
   -p 5353:53/udp \
   -p 5353:53/tcp \
-  near-dns-server \
+  frolvlad/near-dns \
   --bind 0.0.0.0:53 \
   --rpc-url https://rpc.testnet.near.org
 
@@ -102,13 +99,20 @@ docker run -d --name near-dns \
   -e RUST_LOG=debug \
   -p 5353:53/udp \
   -p 5353:53/tcp \
-  near-dns-server
+  frolvlad/near-dns
 
 # Test the container
 dig @localhost -p 5353 near-dns.testnet A
 
 # View logs
 docker logs -f near-dns
+```
+
+#### Building from Source
+
+```bash
+docker build -t near-dns .
+docker run -d -p 5353:53/udp -p 5353:53/tcp near-dns
 ```
 
 ### Deploying Your Own DNS Contract
