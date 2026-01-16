@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEAR DNS - Decentralized Domain Name System</title>
+    <meta name="description" content="Resolve blockchain-based domain names on NEAR Protocol. Decentralized DNS for .near, .testnet, and other NEAR ecosystem TLDs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --near-green: #00ec97;
+            --near-green-dark: #00c77d;
+            --near-green-glow: rgba(0, 236, 151, 0.3);
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border-color: #2a2a2a;
+            --border-glow: rgba(0, 236, 151, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Background grid effect */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 236, 151, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 236, 151, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Glow orbs */
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .glow-orb-1 {
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 236, 151, 0.15) 0%, transparent 70%);
+        }
+
+        .glow-orb-2 {
+            bottom: -300px;
+            left: -200px;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 236, 151, 0.1) 0%, transparent 70%);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(13, 13, 13, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--near-green);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--bg-primary);
+            font-size: 0.875rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--near-green);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--near-green);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--near-green-dark);
+            box-shadow: 0 0 30px var(--near-green-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--near-green);
+            color: var(--near-green);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 236, 151, 0.1);
+            border: 1px solid rgba(0, 236, 151, 0.2);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--near-green);
+            margin-bottom: 2rem;
+        }
+
+        .badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--near-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 .highlight {
+            background: linear-gradient(135deg, var(--near-green) 0%, var(--near-green-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Terminal Demo */
+        .terminal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 4rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.25rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f57; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #28c840; }
+
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .terminal-body {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.8;
+        }
+
+        .terminal-line {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .terminal-prompt {
+            color: var(--near-green);
+            margin-right: 0.5rem;
+        }
+
+        .terminal-command {
+            color: var(--text-primary);
+        }
+
+        .terminal-output {
+            color: var(--text-secondary);
+            margin-left: 1.5rem;
+            display: block;
+        }
+
+        .terminal-output.success {
+            color: var(--near-green);
+        }
+
+        /* Features Section */
+        .section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -20px rgba(0, 236, 151, 0.2);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 236, 151, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* How It Works */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 60px;
+            bottom: 60px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--near-green), transparent);
+        }
+
+        .step {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-card);
+            border: 2px solid var(--near-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--near-green);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 0.5rem;
+        }
+
+        .step-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+        }
+
+        /* Code Block */
+        .code-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 3rem;
+        }
+
+        .code-tabs {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .code-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .code-tab.active {
+            color: var(--near-green);
+            border-bottom-color: var(--near-green);
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        .code-content .comment {
+            color: var(--text-muted);
+        }
+
+        .code-content .command {
+            color: var(--near-green);
+        }
+
+        .code-content .string {
+            color: #ffd700;
+        }
+
+        .code-content .flag {
+            color: #87ceeb;
+        }
+
+        /* TLDs Section */
+        .tlds-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .tld-badge {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--near-green);
+            transition: all 0.2s;
+        }
+
+        .tld-badge:hover {
+            border-color: var(--near-green);
+            box-shadow: 0 0 20px var(--near-green-glow);
+        }
+
+        /* CTA Section */
+        .cta {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, transparent, rgba(0, 236, 151, 0.05));
+            border-top: 1px solid var(--border-color);
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--near-green);
+        }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-copy a {
+            color: var(--near-green);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 6rem 1rem 2rem;
+            }
+
+            .hero-description {
+                font-size: 1rem;
+            }
+
+            .terminal {
+                margin-top: 2rem;
+            }
+
+            .terminal-body {
+                font-size: 0.75rem;
+                padding: 1rem;
+            }
+
+            .section {
+                padding: 4rem 1rem;
+            }
+
+            .step {
+                gap: 1rem;
+            }
+
+            .steps::before {
+                left: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <nav>
+        <a href="#" class="logo">
+            <div class="logo-icon">DNS</div>
+            <span>NEAR DNS</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#get-started">Get Started</a>
+            <a href="https://github.com/example/near-dns" target="_blank" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="badge">Built on NEAR Protocol</div>
+        <h1>Decentralized DNS<br>for the <span class="highlight">Open Web</span></h1>
+        <p class="hero-description">
+            Resolve blockchain-based domain names by querying smart contracts on NEAR Protocol. 
+            Own your domain, control your records, no intermediaries.
+        </p>
+        <div class="hero-buttons">
+            <a href="#get-started" class="btn btn-primary">
+                Get Started
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="https://github.com/example/near-dns" class="btn btn-secondary">View on GitHub</a>
+        </div>
+
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+                <div class="terminal-title">Terminal</div>
+            </div>
+            <div class="terminal-body">
+                <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="terminal-command">dig @localhost -p 5353 near-dns.testnet A</span>
+                </div>
+                <span class="terminal-output">; &lt;&lt;&gt;&gt; DiG &lt;&lt;&gt;&gt; @localhost -p 5353 near-dns.testnet A</span>
+                <span class="terminal-output">;; ANSWER SECTION:</span>
+                <span class="terminal-output success">near-dns.testnet.    300    IN    A    1.2.3.4</span>
+                <span class="terminal-output">;; Query time: 142 msec</span>
+                <br>
+                <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="terminal-command">dig @localhost -p 5353 near-dns.testnet TXT</span>
+                </div>
+                <span class="terminal-output success">near-dns.testnet.    300    IN    TXT    "Hello from NEAR blockchain!"</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="features">
+        <div class="section-header">
+            <h2>Why NEAR DNS?</h2>
+            <p>A fully decentralized DNS system with blockchain-level security and ownership</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3>Blockchain Native</h3>
+                <p>DNS records stored directly on NEAR Protocol. No centralized servers, no single points of failure.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>True Ownership</h3>
+                <p>Your NEAR account controls your domain. Only you can modify DNS records through cryptographic signatures.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast Resolution</h3>
+                <p>Smart caching layer ensures quick responses while maintaining decentralization guarantees.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3>Hybrid Resolution</h3>
+                <p>Seamlessly resolves both NEAR domains and traditional DNS. One server for all your needs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <h3>Full DNS Support</h3>
+                <p>A, AAAA, CNAME, MX, TXT, NS, SRV, SOA, PTR, CAA records. Everything you need for production use.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Wildcard Records</h3>
+                <p>Support for wildcard DNS entries. Route all subdomains with a single record.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-header">
+            <h2>Supported TLDs</h2>
+            <p>All NEAR ecosystem top-level domains are automatically resolved</p>
+        </div>
+        <div class="tlds-grid">
+            <div class="tld-badge">.near</div>
+            <div class="tld-badge">.testnet</div>
+            <div class="tld-badge">.aurora</div>
+            <div class="tld-badge">.tg</div>
+            <div class="tld-badge">.sweat</div>
+            <div class="tld-badge">.kaiching</div>
+            <div class="tld-badge">.sharddog</div>
+        </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Simple, transparent, and fully decentralized</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>DNS Query Received</h3>
+                    <p>Client sends a standard DNS query for a domain like <code>example.near</code></p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>TLD Detection</h3>
+                    <p>Server identifies <code>.near</code> as a NEAR ecosystem TLD and routes to blockchain resolution</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Smart Contract Query</h3>
+                    <p>Server calls the <code>dns.example.near</code> contract via NEAR RPC to fetch DNS records</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Response Returned</h3>
+                    <p>DNS records from the blockchain are returned to the client in standard DNS format</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="get-started">
+        <div class="section-header">
+            <h2>Get Started</h2>
+            <p>Run your own NEAR DNS server in minutes</p>
+        </div>
+        
+        <div class="code-section">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showTab('docker')">Docker</button>
+                <button class="code-tab" onclick="showTab('source')">From Source</button>
+                <button class="code-tab" onclick="showTab('records')">Add Records</button>
+            </div>
+            <div class="code-content" id="docker-content">
+<pre><span class="comment"># Pull and run with Docker</span>
+<span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">--name</span> near-dns \
+  <span class="flag">-p</span> 5353:53/udp \
+  <span class="flag">-p</span> 5353:53/tcp \
+  near-dns-server
+
+<span class="comment"># Or build from source</span>
+<span class="command">docker</span> build <span class="flag">-t</span> near-dns-server .
+<span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">-p</span> 5353:53/udp near-dns-server
+
+<span class="comment"># Test it works</span>
+<span class="command">dig</span> @localhost <span class="flag">-p</span> 5353 near-dns.testnet A</pre>
+            </div>
+            <div class="code-content" id="source-content" style="display: none;">
+<pre><span class="comment"># Clone the repository</span>
+<span class="command">git</span> clone https://github.com/example/near-dns
+<span class="command">cd</span> near-dns
+
+<span class="comment"># Build and run</span>
+<span class="command">cargo</span> build <span class="flag">--release</span> <span class="flag">--package</span> near-dns-server
+
+<span class="comment"># Start the server (testnet)</span>
+<span class="command">RUST_LOG</span>=info ./target/release/near-dns-server \
+  <span class="flag">--bind</span> 127.0.0.1:5353 \
+  <span class="flag">--rpc-url</span> https://rpc.testnet.near.org
+
+<span class="comment"># Test with dig</span>
+<span class="command">dig</span> @127.0.0.1 <span class="flag">-p</span> 5353 near-dns.testnet A</pre>
+            </div>
+            <div class="code-content" id="records-content" style="display: none;">
+<pre><span class="comment"># Deploy your DNS contract</span>
+<span class="command">near</span> account create-account fund-myself dns.you.testnet <span class="string">'0.5 NEAR'</span> \
+  autogenerate-new-keypair save-to-keychain \
+  sign-as you.testnet network-config testnet sign-with-keychain send
+
+<span class="comment"># Add an A record</span>
+<span class="command">near</span> contract call-function as-transaction dns.you.testnet dns_add \
+  json-args <span class="string">'{"name": "@", "record": {"record_type": "A", "value": "1.2.3.4", "ttl": 300}}'</span> \
+  prepaid-gas <span class="string">'30 Tgas'</span> attached-deposit <span class="string">'0 NEAR'</span> \
+  sign-as you.testnet network-config testnet sign-with-keychain send
+
+<span class="comment"># Add a TXT record</span>
+<span class="command">near</span> contract call-function as-transaction dns.you.testnet dns_add \
+  json-args <span class="string">'{"name": "@", "record": {"record_type": "TXT", "value": "Hello NEAR!", "ttl": 300}}'</span> \
+  prepaid-gas <span class="string">'30 Tgas'</span> attached-deposit <span class="string">'0 NEAR'</span> \
+  sign-as you.testnet network-config testnet sign-with-keychain send</pre>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Ready to Decentralize Your DNS?</h2>
+        <p>Join the future of domain name resolution on NEAR Protocol</p>
+        <div class="hero-buttons">
+            <a href="https://github.com/example/near-dns" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                View on GitHub
+            </a>
+            <a href="https://docs.near.org" class="btn btn-secondary">NEAR Documentation</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/example/near-dns">GitHub</a>
+            <a href="https://github.com/example/near-dns/blob/main/README.md">Documentation</a>
+            <a href="https://github.com/example/near-dns/blob/main/CONTRIBUTING.md">Contributing</a>
+            <a href="https://near.org">NEAR Protocol</a>
+        </div>
+        <p class="footer-copy">
+            Open source under MIT/Apache-2.0 license. Built with <a href="https://near.org">NEAR Protocol</a>.
+        </p>
+    </footer>
+
+    <script>
+        function showTab(tab) {
+            // Hide all content
+            document.querySelectorAll('.code-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.code-tab').forEach(el => el.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById(tab + '-content').style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Terminal typing effect (optional enhancement)
+        const terminalLines = document.querySelectorAll('.terminal-command');
+        // Could add typing animation here if desired
+    </script>
+</body>
+</html>

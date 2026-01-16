@@ -1,0 +1,11 @@
+services:
+  web:
+    image: nginx
+    volumes:
+      - .:/usr/share/nginx/html:ro 
+#   - ./templates:/etc/nginx/templates
+    ports:
+     - "80:80"
+#  environment:
+#   - NGINX_HOST=foobar.com
+#   - NGINX_PORT=80

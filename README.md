@@ -4,7 +4,7 @@ A decentralized DNS system that resolves blockchain-based domain names by queryi
 
 ## Overview
 
-NEAR DNS enables domain name resolution for NEAR ecosystem TLDs (`.near`, `.tg`, `.testnet`, etc.) by storing DNS records in smart contracts. Each NEAR account can deploy a DNS contract as a subaccount (`dns.<account>.<tld>`) to manage their domain's DNS records.
+NEAR DNS enables domain name resolution for NEAR ecosystem TLDs (`.near`, `.testnet`, etc.) by storing DNS records in smart contracts. Each NEAR account can deploy a DNS contract as a subaccount (`dns.<account>.<tld>`) to manage their domain's DNS records.
 
 ### How It Works
 
@@ -75,6 +75,40 @@ RUST_LOG=info cargo run --release -- \
 dig @127.0.0.1 -p 5353 near-dns.testnet A
 dig @127.0.0.1 -p 5353 near-dns.testnet TXT
 dig @127.0.0.1 -p 5353 google.com A  # Forwarded upstream
+```
+
+### Running with Docker
+
+```bash
+# Build the image
+docker build -t near-dns-server .
+
+# Run with defaults (mainnet RPC, port 53)
+docker run -d --name near-dns \
+  -p 53:53/udp \
+  -p 53:53/tcp \
+  near-dns-server
+
+# Run with testnet RPC on a custom port
+docker run -d --name near-dns \
+  -p 5353:53/udp \
+  -p 5353:53/tcp \
+  near-dns-server \
+  --bind 0.0.0.0:53 \
+  --rpc-url https://rpc.testnet.near.org
+
+# Run with custom log level
+docker run -d --name near-dns \
+  -e RUST_LOG=debug \
+  -p 5353:53/udp \
+  -p 5353:53/tcp \
+  near-dns-server
+
+# Test the container
+dig @localhost -p 5353 near-dns.testnet A
+
+# View logs
+docker logs -f near-dns
 ```
 
 ### Deploying Your Own DNS Contract

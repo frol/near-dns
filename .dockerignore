@@ -1,0 +1,29 @@
+# Build artifacts
+target/
+dns-contract/target/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentation (not needed for build)
+*.md
+!README.md
+
+# License files (not needed for build)
+LICENSE*
+
+# Local config
+.env
+.env.*
+
+# NEAR credentials (never include these!)
+.near-credentials/
+*.json
+!Cargo.lock
