@@ -77,8 +77,8 @@ A NEAR smart contract that stores DNS records with:
 
 ### Prerequisites
 
-- Rust 1.70+
-- NEAR CLI (`npm install -g near-cli` or `cargo install near-cli-rs`)
+- Rust 1.86
+- [NEAR CLI](https://near.cli.rs)
 - A NEAR account (testnet or mainnet)
 
 ### Running the DNS Server
@@ -170,13 +170,20 @@ docker build -t near-dns .
 docker run -d -p 5355:53/udp -p 5355:53/tcp near-dns
 ```
 
-### Deploying Your Own DNS Contract
+### Register Your Own Domain (aka Deploying Your Own DNS Contract)
+
+Build the contract first using [`cargo near`](https://github.com/near/cargo-near):
+
+```bash
+cd dns-contract
+cargo near build
+```
 
 #### Mainnet
 
 ```bash
 # Create a subaccount for DNS
-near account create-account fund-myself dns.youraccount.near '0.5 NEAR' \
+near account create-account fund-myself dns.youraccount.near '2.1 NEAR' \
   autogenerate-new-keypair save-to-keychain \
   sign-as youraccount.near network-config mainnet sign-with-keychain send
 
@@ -194,9 +201,15 @@ near contract deploy dns.youraccount.near \
 
 #### Testnet
 
+Unlike mainnet, you can create a new account and get some free NEAR tokens on testnet using this simple command:
+
+```bash
+near account create-account sponsor-by-faucet-service
+```
+
 ```bash
 # Create a subaccount for DNS
-near account create-account fund-myself dns.youraccount.testnet '0.5 NEAR' \
+near account create-account fund-myself dns.youraccount.testnet '2.1 NEAR' \
   autogenerate-new-keypair save-to-keychain \
   sign-as youraccount.testnet network-config testnet sign-with-keychain send
 
