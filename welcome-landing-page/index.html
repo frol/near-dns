@@ -663,18 +663,18 @@
             <div class="terminal-body">
                 <div class="terminal-line">
                     <span class="terminal-prompt">$</span>
-                    <span class="terminal-command">dig @localhost -p 5355 near-dns.testnet A</span>
+                    <span class="terminal-command">dig @localhost -p 5355 neardns.near A</span>
                 </div>
-                <span class="terminal-output">; &lt;&lt;&gt;&gt; DiG &lt;&lt;&gt;&gt; @localhost -p 5355 near-dns.testnet A</span>
+                <span class="terminal-output">; &lt;&lt;&gt;&gt; DiG &lt;&lt;&gt;&gt; @localhost -p 5355 neardns.near A</span>
                 <span class="terminal-output">;; ANSWER SECTION:</span>
-                <span class="terminal-output success">near-dns.testnet.    300    IN    A    1.2.3.4</span>
+                <span class="terminal-output success">neardns.near.    300    IN    A    1.2.3.4</span>
                 <span class="terminal-output">;; Query time: 142 msec</span>
                 <br>
                 <div class="terminal-line">
                     <span class="terminal-prompt">$</span>
-                    <span class="terminal-command">dig @localhost -p 5355 near-dns.testnet TXT</span>
+                    <span class="terminal-command">dig @localhost -p 5355 neardns.near TXT</span>
                 </div>
-                <span class="terminal-output success">near-dns.testnet.    300    IN    TXT    "Hello from NEAR blockchain!"</span>
+                <span class="terminal-output success">neardns.near.    300    IN    TXT    "Hello from NEAR blockchain!"</span>
             </div>
         </div>
     </section>
@@ -795,7 +795,7 @@
 <span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">-p</span> 5355:53/udp near-dns
 
 <span class="comment"># Test it works</span>
-<span class="command">dig</span> @localhost <span class="flag">-p</span> 5355 near-dns.testnet A</pre>
+<span class="command">dig</span> @localhost <span class="flag">-p</span> 5355 neardns.near A</pre>
             </div>
             <div class="code-content" id="source-content" style="display: none;">
 <pre><span class="comment"># Clone the repository</span>
@@ -811,7 +811,7 @@
   <span class="flag">--rpc-url</span> https://rpc.testnet.near.org
 
 <span class="comment"># Test with dig</span>
-<span class="command">dig</span> @127.0.0.1 <span class="flag">-p</span> 5355 near-dns.testnet A</pre>
+<span class="command">dig</span> @127.0.0.1 <span class="flag">-p</span> 5355 neardns.near A</pre>
             </div>
             <div class="code-content" id="records-content" style="display: none;">
 <pre><span class="comment"># Deploy your DNS contract</span>
