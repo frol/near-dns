@@ -6,6 +6,8 @@ A decentralized DNS system that resolves blockchain-based domain names by queryi
 
 NEAR DNS enables domain name resolution for NEAR ecosystem TLDs (`.near`, `.testnet`, etc.) by storing DNS records in smart contracts. Each NEAR account can deploy a DNS contract as a subaccount (`dns.<account>.<tld>`) to manage their domain's DNS records.
 
+**Key Design Principle**: NEAR DNS is not intended to be a centralized DNS provider. Since all DNS records are stored on the NEAR blockchain, the DNS server itself is essentially a stateless gateway that translates DNS queries into blockchain lookups. **Self-hosting is encouraged** — you can run your own instance and get the exact same results as any other instance, because the source of truth is always the blockchain.
+
 ### How It Works
 
 1. **DNS Query**: Client queries `example.near` A record
@@ -29,6 +31,26 @@ For traditional domains (`.com`, `.org`, etc.), queries are forwarded to upstrea
                     │ (Google/CF)   │
                     └───────────────┘
 ```
+
+## Public DNS Server
+
+There is currently one publicly available NEAR DNS server connected to **mainnet**:
+
+```
+DNS Server: 185.149.40.161 (port 53)
+```
+
+Try it out:
+
+```bash
+# Query a mainnet domain
+dig @185.149.40.161 neardns.near A
+
+# Expected response:
+# neardns.near.    1    IN    A    185.149.40.161
+```
+
+> **Note**: This public server is provided for convenience, but self-hosting is encouraged. Since NEAR DNS is stateless (all data comes from the blockchain), running your own instance gives you the same results with better privacy and no single point of failure.
 
 ## Components
 
@@ -57,52 +79,85 @@ A NEAR smart contract that stores DNS records with:
 
 - Rust 1.70+
 - NEAR CLI (`npm install -g near-cli` or `cargo install near-cli-rs`)
-- A NEAR testnet account
+- A NEAR account (testnet or mainnet)
 
 ### Running the DNS Server
 
+#### For Mainnet
+
 ```bash
 # Clone and build
-cd dns-server
-cargo build --release
+git clone https://github.com/frol/near-dns
+cd near-dns
+cargo build --release --package near-dns-server
 
+# Run the server (mainnet)
+RUST_LOG=info ./target/release/near-dns-server \
+  --bind 127.0.0.1:5355 \
+  --rpc-url https://rpc.mainnet.near.org
+
+# Test with dig
+dig @127.0.0.1 -p 5355 neardns.near A
+```
+
+#### For Testnet
+
+```bash
 # Run the server (testnet)
-RUST_LOG=info cargo run --release -- \
-  --bind 127.0.0.1:5353 \
+RUST_LOG=info ./target/release/near-dns-server \
+  --bind 127.0.0.1:5355 \
   --rpc-url https://rpc.testnet.near.org
 
 # Test with dig
-dig @127.0.0.1 -p 5353 near-dns.testnet A
-dig @127.0.0.1 -p 5353 near-dns.testnet TXT
-dig @127.0.0.1 -p 5353 google.com A  # Forwarded upstream
+dig @127.0.0.1 -p 5355 near-dns.testnet A
+dig @127.0.0.1 -p 5355 near-dns.testnet TXT
+```
+
+Non-NEAR domains are forwarded to upstream DNS servers:
+
+```bash
+dig @127.0.0.1 -p 5355 google.com A  # Forwarded upstream
 ```
 
 ### Running with Docker
 
+#### Mainnet (Default)
+
 ```bash
-# Run with defaults (mainnet RPC, port 53)
+# Run with mainnet RPC (default)
 docker run -d --name near-dns \
   -p 53:53/udp \
   -p 53:53/tcp \
   frolvlad/near-dns
 
-# Run with testnet RPC on a custom port
-docker run -d --name near-dns \
-  -p 5353:53/udp \
-  -p 5353:53/tcp \
+# Test it
+dig @localhost neardns.near A
+```
+
+#### Testnet
+
+```bash
+# Run with testnet RPC
+docker run -d --name near-dns-testnet \
+  -p 5355:53/udp \
+  -p 5355:53/tcp \
   frolvlad/near-dns \
   --bind 0.0.0.0:53 \
   --rpc-url https://rpc.testnet.near.org
 
+# Test it
+dig @localhost -p 5355 near-dns.testnet A
+```
+
+#### Additional Options
+
+```bash
 # Run with custom log level
 docker run -d --name near-dns \
   -e RUST_LOG=debug \
-  -p 5353:53/udp \
-  -p 5353:53/tcp \
+  -p 53:53/udp \
+  -p 53:53/tcp \
   frolvlad/near-dns
-
-# Test the container
-dig @localhost -p 5353 near-dns.testnet A
 
 # View logs
 docker logs -f near-dns
@@ -112,20 +167,38 @@ docker logs -f near-dns
 
 ```bash
 docker build -t near-dns .
-docker run -d -p 5353:53/udp -p 5353:53/tcp near-dns
+docker run -d -p 5355:53/udp -p 5355:53/tcp near-dns
 ```
 
 ### Deploying Your Own DNS Contract
+
+#### Mainnet
+
+```bash
+# Create a subaccount for DNS
+near account create-account fund-myself dns.youraccount.near '0.5 NEAR' \
+  autogenerate-new-keypair save-to-keychain \
+  sign-as youraccount.near network-config mainnet sign-with-keychain send
+
+# Build the contract
+cd dns-contract
+cargo near build non-reproducible-wasm
+
+# Deploy with initialization
+near contract deploy dns.youraccount.near \
+  use-file target/near/dns_contract.wasm \
+  with-init-call new json-args '{}' \
+  prepaid-gas '30 Tgas' attached-deposit '0 NEAR' \
+  network-config mainnet sign-with-keychain send
+```
+
+#### Testnet
 
 ```bash
 # Create a subaccount for DNS
 near account create-account fund-myself dns.youraccount.testnet '0.5 NEAR' \
   autogenerate-new-keypair save-to-keychain \
   sign-as youraccount.testnet network-config testnet sign-with-keychain send
-
-# Build the contract
-cd dns-contract
-cargo near build non-reproducible-wasm
 
 # Deploy with initialization
 near contract deploy dns.youraccount.testnet \
@@ -136,6 +209,8 @@ near contract deploy dns.youraccount.testnet \
 ```
 
 ### Managing DNS Records
+
+The examples below use testnet. For mainnet, replace `.testnet` with `.near` and `network-config testnet` with `network-config mainnet`.
 
 ```bash
 # Add an A record
@@ -202,12 +277,12 @@ Supported record types: `A`, `AAAA`, `CNAME`, `MX`, `TXT`, `NS`, `SRV`, `SOA`, `
 
 ## Resolution Logic
 
-For a query like `sub.example.testnet`:
+For a query like `sub.example.near`:
 
-1. Check if `testnet` is a known NEAR TLD
-2. Try `dns.sub.example.testnet` with name `@`
-3. Try `dns.example.testnet` with name `sub`
-4. Try `dns.example.testnet` with name `*` (wildcard)
+1. Check if `near` is a known NEAR TLD
+2. Try `dns.sub.example.near` with name `@`
+3. Try `dns.example.near` with name `sub`
+4. Try `dns.example.near` with name `*` (wildcard)
 5. Return NXDOMAIN if no records found
 
 ## Supported TLDs
@@ -224,6 +299,11 @@ The DNS server recognizes these NEAR TLDs:
 All other TLDs are forwarded to upstream DNS servers.
 
 ## Deployed Contracts
+
+### Mainnet
+
+- **Contract**: `dns.neardns.near`
+- **Owner**: `neardns.near`
 
 ### Testnet
 

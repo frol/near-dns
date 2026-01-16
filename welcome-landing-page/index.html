@@ -663,16 +663,16 @@
             <div class="terminal-body">
                 <div class="terminal-line">
                     <span class="terminal-prompt">$</span>
-                    <span class="terminal-command">dig @localhost -p 5353 near-dns.testnet A</span>
+                    <span class="terminal-command">dig @localhost -p 5355 near-dns.testnet A</span>
                 </div>
-                <span class="terminal-output">; &lt;&lt;&gt;&gt; DiG &lt;&lt;&gt;&gt; @localhost -p 5353 near-dns.testnet A</span>
+                <span class="terminal-output">; &lt;&lt;&gt;&gt; DiG &lt;&lt;&gt;&gt; @localhost -p 5355 near-dns.testnet A</span>
                 <span class="terminal-output">;; ANSWER SECTION:</span>
                 <span class="terminal-output success">near-dns.testnet.    300    IN    A    1.2.3.4</span>
                 <span class="terminal-output">;; Query time: 142 msec</span>
                 <br>
                 <div class="terminal-line">
                     <span class="terminal-prompt">$</span>
-                    <span class="terminal-command">dig @localhost -p 5353 near-dns.testnet TXT</span>
+                    <span class="terminal-command">dig @localhost -p 5355 near-dns.testnet TXT</span>
                 </div>
                 <span class="terminal-output success">near-dns.testnet.    300    IN    TXT    "Hello from NEAR blockchain!"</span>
             </div>
@@ -786,16 +786,16 @@
             <div class="code-content" id="docker-content">
 <pre><span class="comment"># Pull and run with Docker</span>
 <span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">--name</span> near-dns \
-  <span class="flag">-p</span> 5353:53/udp \
-  <span class="flag">-p</span> 5353:53/tcp \
+  <span class="flag">-p</span> 5355:53/udp \
+  <span class="flag">-p</span> 5355:53/tcp \
   frolvlad/near-dns
 
 <span class="comment"># Or build from source</span>
 <span class="command">docker</span> build <span class="flag">-t</span> near-dns .
-<span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">-p</span> 5353:53/udp near-dns
+<span class="command">docker</span> run <span class="flag">-d</span> <span class="flag">-p</span> 5355:53/udp near-dns
 
 <span class="comment"># Test it works</span>
-<span class="command">dig</span> @localhost <span class="flag">-p</span> 5353 near-dns.testnet A</pre>
+<span class="command">dig</span> @localhost <span class="flag">-p</span> 5355 near-dns.testnet A</pre>
             </div>
             <div class="code-content" id="source-content" style="display: none;">
 <pre><span class="comment"># Clone the repository</span>
@@ -807,11 +807,11 @@
 
 <span class="comment"># Start the server (testnet)</span>
 <span class="command">RUST_LOG</span>=info ./target/release/near-dns-server \
-  <span class="flag">--bind</span> 127.0.0.1:5353 \
+  <span class="flag">--bind</span> 127.0.0.1:5355 \
   <span class="flag">--rpc-url</span> https://rpc.testnet.near.org
 
 <span class="comment"># Test with dig</span>
-<span class="command">dig</span> @127.0.0.1 <span class="flag">-p</span> 5353 near-dns.testnet A</pre>
+<span class="command">dig</span> @127.0.0.1 <span class="flag">-p</span> 5355 near-dns.testnet A</pre>
             </div>
             <div class="code-content" id="records-content" style="display: none;">
 <pre><span class="comment"># Deploy your DNS contract</span>

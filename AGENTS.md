@@ -109,17 +109,17 @@ Credentials are stored in `/home/node/.near-credentials/testnet/`
 ```bash
 cd /mnt/near-dns
 RUST_LOG=info cargo run --package near-dns-server -- \
-  --bind 127.0.0.1:5353 \
+  --bind 127.0.0.1:5355 \
   --rpc-url https://rpc.testnet.near.org
 ```
 
 ### Testing with dig
 
 ```bash
-dig @127.0.0.1 -p 5353 near-dns.testnet A
-dig @127.0.0.1 -p 5353 near-dns.testnet TXT
-dig @127.0.0.1 -p 5353 www.near-dns.testnet A
-dig @127.0.0.1 -p 5353 google.com A  # Upstream forwarding
+dig @127.0.0.1 -p 5355 near-dns.testnet A
+dig @127.0.0.1 -p 5355 near-dns.testnet TXT
+dig @127.0.0.1 -p 5355 www.near-dns.testnet A
+dig @127.0.0.1 -p 5355 google.com A  # Upstream forwarding
 ```
 
 ### Adding DNS Records

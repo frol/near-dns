@@ -23,7 +23,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Address to bind the DNS server to
-    #[arg(short, long, default_value = "127.0.0.1:5353")]
+    #[arg(short, long, default_value = "127.0.0.1:5355")]
     bind: SocketAddr,
 
     /// NEAR RPC URL

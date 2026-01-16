@@ -156,13 +156,13 @@ Closes #123
 ```bash
 # Start the DNS server
 RUST_LOG=info cargo run --package near-dns-server -- \
-  --bind 127.0.0.1:5353 \
+  --bind 127.0.0.1:5355 \
   --rpc-url https://rpc.testnet.near.org
 
 # Test queries
-dig @127.0.0.1 -p 5353 near-dns.testnet A
-dig @127.0.0.1 -p 5353 near-dns.testnet TXT
-dig @127.0.0.1 -p 5353 google.com A
+dig @127.0.0.1 -p 5355 near-dns.testnet A
+dig @127.0.0.1 -p 5355 near-dns.testnet TXT
+dig @127.0.0.1 -p 5355 google.com A
 ```
 
 ## Security
