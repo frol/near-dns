@@ -32,6 +32,11 @@ For traditional domains (`.com`, `.org`, etc.), queries are forwarded to upstrea
                     └───────────────┘
 ```
 
+## Learn More
+
+* For developers with or without web3 background: [NEAR DNS - DNS records stored on blockchain and served over DNS protocol](https://www.reddit.com/r/rust/comments/1qew4ra/near_dns_dns_records_stored_on_blockchain_and/)
+* For developers with web3 background: [NEAR DNS - DNS records stored on NEAR and served over DNS protocol](https://www.reddit.com/r/nearprotocol/comments/1qek7qz/near_dns_dns_records_stored_on_near_and_servered/)
+
 ## Public DNS Server
 
 There is currently one publicly available NEAR DNS server connected to **mainnet**:
